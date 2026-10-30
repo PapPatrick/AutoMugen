@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoMugen | Live tournament</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/broadcast.js" defer></script>
+  <script src="/overlay.js" defer></script>
+</head>
+<body class="overlay broadcast" data-screen="bracket">
+  <header class="overlay-top"><span class="brand">AUTO<span>MUGEN</span><small>JUMP FORCE / AI FIGHT NIGHT</small></span><span id="overlay-round"></span><span id="overlay-progress"></span></header>
+  <div id="overlay-notice" class="overlay-notice" role="status">Connecting to local control...</div>
+  <main class="broadcast-stage">
+    <div class="broadcast-banner">
+      <div class="broadcast-banner-copy"><strong id="overlay-title">The road to champion</strong><span id="overlay-phase">AI TOURNAMENT</span></div>
+      <div id="pool-counter" class="pool-counter" hidden><span id="pool-label"></span><strong id="pool-total"></strong></div>
+      <strong id="overlay-timer">CONNECTING</strong>
+    </div>
+    <section class="tree-scene">
+      <div class="stream-heading"><p class="eyebrow">SINGLE ELIMINATION / THE DRAW</p><p id="tree-subtitle"></p></div>
+      <div id="champion-choices" class="betting-choices" hidden></div>
+      <div id="stream-tree" class="tournament-tree stream-tree"></div>
+      <div id="chat-stream" class="chat-stream" hidden></div>
+    </section>
+    <section class="matchup-scene">
+      <p class="eyebrow">THE NEXT BATTLE</p>
+      <div class="hero-versus">
+        <div class="hero blue"><div id="hero1"></div><small>PLAYER 01 / AI</small><h1 id="hero-name1"></h1><p id="hero-bets1" class="hero-bet"></p></div>
+        <div class="versus-mark">VS</div>
+        <div class="hero pink"><div id="hero2"></div><small>PLAYER 02 / AI</small><h1 id="hero-name2"></h1><p id="hero-bets2" class="hero-bet"></p></div>
+      </div>
+      <p id="hero-series" class="hero-series"></p>
+    </section>
+    <section class="result-scene" aria-live="polite">
+      <p class="eyebrow">MATCH COMPLETE</p>
+      <div id="result-portrait"></div>
+      <h1 id="result-winner"></h1>
+      <p id="result-match"></p>
+      <div id="result-bets" class="result-bets"></div>
+      <p id="result-payout" class="result-payout"></p>
+    </section>
+  </main>
+  <section class="game-strip" aria-label="Tournament match score"><div class="game-context" id="game-context"></div><div class="game-scoreline"><strong id="overlay-p1"></strong><span id="game-score"></span><strong id="overlay-p2"></strong></div></section>
+  <footer class="broadcast-footer"><span>NO SECOND CHANCES. ONE CHAMPION.</span><span>POWERED BY YOUR LOCAL MUGEN ROSTER</span></footer>
+</body>
+</html>

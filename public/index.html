@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoMugen | Tournament control</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/broadcast.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">AUTO<span>MUGEN</span><small>TOURNAMENT CONTROL / 01</small></a>
+    <div class="top-actions"><span id="connection" class="pill">CONNECTING</span><a class="button secondary" href="/overlay" target="_blank" rel="noopener">Open OBS overlay ↗</a></div>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">JUMP FORCE / AI VS AI</p><h1>Your roster.<br><span>One champion.</span></h1><p class="muted">Seed the bracket. Launch the fight. Confirm the result.</p></div>
+      <div class="honesty"><span class="dot amber"></span><strong>Read-only engine winner detection</strong><p>Automatic play pauses on ambiguous results. Credit bets settle only on a verified or operator-confirmed full match winner.</p><span id="twitch-badge" class="pill amber">TWITCH NOT CONNECTED</span><p id="twitch-message"></p></div>
+    </section>
+    <div id="error" class="error" role="alert" hidden></div>
+    <section class="metrics" aria-label="Tournament overview">
+      <div><span class="eyebrow">ROSTER AVAILABLE</span><strong id="roster-count">—</strong><small>validated character definitions</small></div>
+      <div><span class="eyebrow">TOURNAMENT</span><strong id="progress">Not seeded</strong><small id="seed-label">Ready when you are</small></div>
+      <div><span class="eyebrow">MATCH CONTROL</span><strong id="match-status">Standby</strong><small>Engine detection with manual fallback</small></div>
+    </section>
+    <div class="workspace">
+      <aside>
+        <section class="panel">
+          <div class="section-title"><span class="step">01</span><h2>Game connection</h2></div>
+          <form id="settings-form">
+            <label for="game-path">MUGEN folder</label><input id="game-path" required spellcheck="false">
+            <div class="row"><button class="secondary" type="submit">Save folder</button><button class="secondary" id="refresh" type="button">Rescan roster</button></div>
+            <button id="update-portraits" class="secondary wide" type="button">Update roster &amp; portraits</button>
+            <p id="portrait-update-status" class="hint" role="status">Checks game data and creates missing or changed character images.</p>
+            <progress id="portrait-update-progress" class="wide" hidden></progress>
+          </form>
+          <p class="hint">Reads your roster and stage definitions. Original game configuration is never edited by AutoMugen.</p>
+          <details id="warnings"><summary id="warning-count">Discovery notes</summary><ul id="warning-list"></ul></details>
+        </section>
+        <section class="panel">
+          <div class="section-title"><span class="step">02</span><h2>Build a tournament</h2></div>
+          <form id="create-form">
+            <div class="two-col">
+              <div><label for="size">Fighters</label><select id="size"><option>2</option><option>4</option><option>8</option><option selected>16</option><option>32</option><option>64</option></select></div>
+              <div><label for="seconds">Champion betting window</label><input id="seconds" type="number" value="180" readonly><small>60s per match before semifinals / 180s champion pick</small></div>
+            </div>
+            <label for="seed">Random seed <span class="muted">/ optional</span></label><input id="seed" placeholder="Leave blank for a fresh draw" maxlength="128">
+            <div class="roster-heading"><label for="search">Fighter pool <span id="selected-count"></span></label><button type="button" class="text-button" id="select-all">Select all</button><button type="button" class="text-button" id="select-none">Clear</button></div>
+            <input id="search" type="search" placeholder="Search roster…">
+            <div id="roster" class="roster" aria-label="Fighter pool"></div>
+            <p class="hint">Randomly samples the selected pool without duplicates. Same seed + same pool order = same draw.</p>
+            <button type="submit" class="primary wide">Randomize & seed bracket</button>
+          </form>
+        </section>
+      </aside>
+      <div class="main-column">
+        <section class="panel arena">
+          <div class="section-title"><span class="step">03</span><h2>Match desk</h2><span id="round-label" class="pill">STANDBY</span></div>
+          <div class="result-box">
+            <span class="eyebrow">AUTOMATIC TOURNAMENT</span>
+            <p id="detection-status"></p>
+            <p id="automation-message" role="status"></p>
+            <div class="row"><button id="auto-start" class="primary">Start automatic tournament</button><button id="auto-pause" class="secondary">Pause automatic launches</button></div>
+            <p class="hint">Before each pre-semifinal match: 60-second match betting. Before the first semifinal: one 3-minute champion window for all four remaining fighters, paid after the grand final. No further match betting. Between championship matches: tree / character screens alternate every 8 seconds. Pausing does not cancel betting. Restarting never resumes games automatically.</p>
+          </div>
+          <div class="result-box prediction-desk">
+            <span class="eyebrow">VIRTUAL-CREDIT CHAT BETTING / ALL CHANNELS</span>
+            <p>Viewers start with <strong>1,000 credits</strong>. Type <strong>!bet 100 &lt;number&gt;</strong>, <strong>!bet all &lt;number&gt;</strong> or <strong>!balance</strong> in chat. Choices 1–2 for match betting; 1–4 for champion betting. One final bet per window. Winners split the whole pool in proportion to their stakes; displayed payouts include returned stakes. Balances below 100 refill to 100 before an accepted bet. No money, purchases, cash value, prizes, redemption or Twitch Channel Points.</p>
+            <div class="row"><button id="chat-select" class="primary">Use chat betting</button><button id="chat-login" class="secondary">Sign in as bot</button><button id="chat-reconnect" class="secondary">Reconnect bot</button><button id="chat-reopen" class="secondary">Reopen refunded window</button><button id="chat-continue" class="secondary">Continue after refunds</button></div>
+            <p id="chat-status" role="status"></p>
+            <p id="chat-leaderboard"></p>
+            <p class="hint">Sign in with a separate Twitch bot account, never your streaming account. Grant chat:read and chat:edit. The bot reads wagers and posts rate-limited confirmations, balances and results in your configured stream channel. A lost connection during open betting refunds all stakes and pauses launches. Reauthorize after server restart. If there are no winning stakes or no opposing stakes, all stakes are refunded instead of paid out.</p>
+            <span class="eyebrow">CURRENT CREDIT BETTING WINDOW</span>
+            <p id="prediction-status" role="status"></p>
+            <div id="betting-choices" class="betting-choices" hidden></div>
+            <div class="row"><button id="prediction-sync" class="secondary">Check bets / retry settlement</button><button id="prediction-cancel" class="secondary">Cancel &amp; refund stakes</button></div>
+            <button id="legacy-ack" class="secondary" hidden>I handled the old Channel Points prediction on Twitch</button>
+            <p class="hint">Set AUTOMUGEN_TWITCH_CLIENT_ID and AUTOMUGEN_TWITCH_CHAT_CHANNEL (your streaming channel's login) before starting. A separate bot account is required; streaming-account sign-in is rejected. Register http://localhost:8765/auth/callback as the OAuth redirect. Channel Points support has been removed. Any old unresolved native prediction must be handled manually in Twitch Creator Dashboard before acknowledging it here; this app cannot refund it.</p>
+          </div>
+          <div id="empty-match" class="empty"><span class="crosshair">＋</span><h3>The arena is waiting</h3><p>Select a fighter pool and seed your first tournament.</p></div>
+          <div id="active-match" hidden>
+            <div class="versus"><div><div id="desk-portrait1"></div><small>PLAYER 01 / AI</small><h3 id="p1">—</h3><code id="p1-id"></code></div><b>VS</b><div><div id="desk-portrait2"></div><small>PLAYER 02 / AI</small><h3 id="p2">—</h3><code id="p2-id"></code></div></div>
+            <div class="window-strip"><div><span class="eyebrow">BROADCAST PRESENTATION</span><strong id="countdown">Not opened</strong></div><button id="window" class="secondary">Prepare live window</button><button id="local-preview" class="secondary">Local preview (no betting)</button></div>
+            <p class="hint">60 seconds to bet on each match before semifinals; one 180-second window to pick the champion before the first semifinal. Launch waits for locked bets. With a two-fighter bracket, only a 180-second champion window is used. Local preview disables betting for this tournament.</p>
+            <label for="stage">Stage</label><select id="stage"></select>
+            <p class="hint">Random stage is selected by default and draws again on each launch or replay.</p>
+            <p id="chosen-stage" class="hint" role="status"></p>
+            <div class="row"><button id="launch" class="primary">Launch AI match</button><button id="recover" class="secondary" hidden>Acknowledge recovery</button></div>
+            <p id="series-format" class="hint"></p>
+            <p class="hint">The game quits after one round. Supported builds record stable engine results after a clean exit. Missing or ambiguous results pause automation. Manual controls remain available while automation is stopped.</p>
+            <div class="result-box"><span class="eyebrow">MANUAL RESULT FALLBACK</span><p>Only confirm a winner you actually observed when automatic detection could not provide one. For a draw, crash, or ambiguous result, replay instead.</p><div class="row"><button id="win1" class="secondary"></button><button id="win2" class="secondary"></button></div></div>
+          </div>
+          <div id="champion" class="empty" hidden><span class="eyebrow">LAST FIGHTER STANDING</span><h3 id="champion-name"></h3><p>Tournament complete. Results were engine-detected or explicitly confirmed.</p></div>
+          <p id="launch-message" class="status-message" role="status"></p>
+          <details id="launch-details" hidden><summary>Launch command & diagnostic log</summary><pre id="command"></pre><p id="log-path" class="hint"></p></details>
+        </section>
+        <section class="panel bracket-panel">
+          <div class="section-title"><h2>The bracket</h2><span class="eyebrow">SINGLE ELIMINATION</span></div>
+          <div id="bracket" class="tournament-tree"><p class="muted">Your randomized draw will appear here.</p></div>
+        </section>
+        <section class="panel broadcast-note">
+          <div><p class="eyebrow">BROADCAST READY</p><h2>A clean view for your stream.</h2><p class="muted">Add a Browser Source in OBS, set 1920 × 1080, and use:</p><code id="overlay-url"></code><p class="hint">Full-screen tree and matchup scenes, transparent scoreboard during fights. Real local portraits where supported; initials mark missing artwork. This switches overlay content, not OBS scenes. Portrait source errors are reported in Discovery notes.</p></div>
+          <a class="button secondary" href="/overlay" target="_blank" rel="noopener">Preview overlay ↗</a>
+        </section>
+      </div>
+    </div>
+    <footer>LOCAL-FIRST · VIRTUAL CREDITS ONLY / NO CASH VALUE · Keep this dashboard on your streaming PC.</footer>
+  </main>
+</body>
+</html>
